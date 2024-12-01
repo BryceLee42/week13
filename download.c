@@ -6,6 +6,8 @@
 int main(int argc, char *argv[])
 {
     char hostname[100];
+    char line[100];
+
     if (argc != 2)
     {
         printf("Please enter either london or newark.");
@@ -35,4 +37,17 @@ int main(int argc, char *argv[])
     }
 
     printf("Connected to %s\n", hostname);
+
+    FILE *server = fdopen(fd, "r+");
+
+    fgets(line, 100, server);
+    printf("%s", line);
+    fprintf(server, "HELO\n");
+    fgets(line, 100, server);
+    printf("%s", line);
+    fprintf(server, "PING\n");
+    fgets(line, 100, server);
+    printf("%s", line);
+
+
 }
