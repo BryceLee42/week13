@@ -93,5 +93,35 @@ int main()
             }
             fgets(line, 100, server);
         }
+        else if (strcmp(input, "d") == 0 || strcmp(input, "D") == 0)
+        {
+            char filename[100];
+            int size = 0;
+            int count = 0;
+            printf("Please enter the filename:");
+            scanf("%s", filename);
+            fprintf(server, "SIZE %s\n", filename);
+            fgets(line, 100, server);
+            if (strstr(line, "-ERR") != NULL)
+            {
+                printf("Error: File not found\n");
+            }
+            else
+            {
+                size = atoi(strtok(line, "+OK "));
+                printf("%d", size);
+                FILE* writeFile = fopen(filename, "w");
+                fprintf(server, "GET %s\n", filename);
+                fgets(line, 100, server);
+                while (count<size)
+                {
+                    fgets(line, 100, server);
+                    count += strlen(line);
+                    fprintf(writeFile, "%s", line);
+                }
+                fclose(writeFile);
+            }
+        }
     }
+    fclose(server);
 }
