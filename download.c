@@ -3,6 +3,16 @@
 #include <string.h>
 #include <libsocket/libinetsocket.h>
 
+void trim(char string[100])
+{
+    int i = 0;
+    while(string[i] != '\n' && string[i] != '\0')
+    {
+        i++;
+    }
+    string[i] = '\0';
+}
+
 int main()
 {
     char hostname[100];
@@ -42,15 +52,46 @@ int main()
     printf("Connected to %s\n", hostname);
 
     FILE *server = fdopen(fd, "r+");
-
     fgets(line, 100, server);
-    printf("%s", line);
-    fprintf(server, "HELO\n");
-    fgets(line, 100, server);
-    printf("%s", line);
-    fprintf(server, "PING\n");
-    fgets(line, 100, server);
-    printf("%s", line);
 
+    while (strcmp(input, "q") != 0 && strcmp(input, "Q") !=0)
+    {
+        printf("L)ist files\n");
+        printf("D)ownload\n");
+        printf("Q)uit\n");
+        printf("What would you like to do?");
+        scanf("%s", input);
 
+        if (strcmp(input, "l") == 0 || strcmp(input, "L") == 0)
+        {
+            char *size;
+            char *filename;
+            char spaces[100] = "";
+            int numOfSpaces;
+            fprintf(server, "LIST\n");
+            fgets(line, 100, server);
+            fgets(line, 100, server);
+            trim(line);
+            printf("Filename                  Size\n");
+            printf("------------------------------\n");
+
+            while (line[0] != '0')
+            {
+                size = strtok(line, " ");
+                filename = strtok(NULL, " ");
+
+                numOfSpaces = 30 - strlen(size) - strlen(filename);
+                for(int i=0; i<numOfSpaces; i++)
+                {
+                    strcat(spaces, " ");
+                }
+                printf("%s%s%s\n", filename, spaces, size);
+                strcpy(spaces, "");
+
+                fgets(line, 100, server);
+                trim(line);
+            }
+            fgets(line, 100, server);
+        }
+    }
 }
