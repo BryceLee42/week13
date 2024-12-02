@@ -3,29 +3,32 @@
 #include <string.h>
 #include <libsocket/libinetsocket.h>
 
-int main(int argc, char *argv[])
+int main()
 {
     char hostname[100];
     char line[100];
+    char input[100];
+    int set = 0;
 
-    if (argc != 2)
+    while (set == 0)
     {
-        printf("Please enter either london or newark.");
-        exit(1);
-    }
+        printf("Please enter which server to connect to (london/newark):");
+        scanf("%s", input);
 
-    if (strcmp(argv[1], "london") == 0)
-    {
-         strcpy(hostname, "london.cs.sierracollege.edu");
-    }
-    else if (strcmp(argv[1], "newark") == 0)
-    {
-         strcpy(hostname, "newark.cs.sierracollege.edu");
-    }
-    else
-    {
-        printf("Please enter either london or newark.");
-        exit(1);
+        if (strcmp(input, "london") == 0)
+        {
+            strcpy(hostname, "london.cs.sierracollege.edu");
+            set = 1;
+        }
+        else if (strcmp(input, "newark") == 0)
+        {
+            strcpy(hostname, "newark.cs.sierracollege.edu");
+            set = 1;
+        }
+        else
+        {
+            printf("Please enter either london or newark.");
+        }
     }
 
     int fd = create_inet_stream_socket(hostname, "3456", LIBSOCKET_IPv4, 0);
