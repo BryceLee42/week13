@@ -56,9 +56,10 @@ int main()
 
     while (strcmp(input, "q") != 0 && strcmp(input, "Q") !=0)
     {
-        printf("L)ist files\n");
-        printf("D)ownload\n");
-        printf("Q)uit\n");
+        printf("(L) List files\n");
+        printf("(D) Download\n");
+        printf("(DA) Download All\n");
+        printf("(Q) Quit\n");
         printf("What would you like to do?");
         scanf("%s", input);
 
@@ -98,6 +99,7 @@ int main()
             char filename[100];
             int size = 0;
             int count = 0;
+            int transferred;
             printf("Please enter the filename:");
             scanf("%s", filename);
             fprintf(server, "SIZE %s\n", filename);
@@ -130,18 +132,83 @@ int main()
                 if (runCode == 1)
                 {
                     size = atoi(strtok(line, "+OK "));
-                    FILE* writeFile = fopen(filename, "w");
+                    char buffer[1000];
+                    transferred = 0;
                     fprintf(server, "GET %s\n", filename);
                     fgets(line, 100, server);
-                    while (count<size)
+                    FILE* writeFile = fopen(filename, "w");
+                    while(transferred<size)
                     {
-                        fgets(line, 100, server);
-                        count += strlen(line);
-                        fprintf(writeFile, "%s", line);
+                        if(size-transferred<1000)
+                        {
+                            fread(buffer, sizeof(char), size-transferred, server);
+                            fwrite(buffer, sizeof(char), size-transferred, writeFile);
+                            transferred += size-transferred;
+                        }
+                        else
+                        {
+                            fread(buffer, sizeof(char), 1000, server);
+                            fwrite(buffer, sizeof(char), 1000, writeFile);
+                            transferred += 1000;
+                        }
                     }
+                    
                     fclose(writeFile);
                 }
             }
+        }
+        if (strcmp(input, "da") == 0 || strcmp(input, "DA") == 0)
+        {
+            int numOfFiles = 0;
+            char *filename;
+            char ** filenames = malloc(15*sizeof(char *));
+            int fileSizes[15];
+            int size = 0;
+            int transferred;
+
+            fprintf(server, "LIST\n");
+            fgets(line, 100, server);
+            fgets(line, 100, server);
+            while (line[0] != '0')
+            {
+                size = atoi(strtok(line, " "));
+                filename = strtok(NULL, " ");
+                trim(filename);
+                filenames[numOfFiles] = malloc(strlen(filename+1));
+                strcpy(filenames[numOfFiles], filename);
+                fileSizes[numOfFiles] = size;
+
+                numOfFiles += 1;
+                fgets(line, 100, server);
+            }
+            fgets(line, 100, server);
+
+            for(int i=0; i<numOfFiles; i++)
+            {
+                size = fileSizes[i];
+                char buffer[1000];
+                transferred = 0;
+                fprintf(server, "GET %s\n", filenames[i]);
+                fgets(line, 100, server);
+                FILE* writeFile = fopen(filenames[i], "w");
+                while(transferred<size)
+                {
+                    if(size-transferred<1000)
+                    {
+                        fread(buffer, sizeof(char), size-transferred, server);
+                        fwrite(buffer, sizeof(char), size-transferred, writeFile);
+                        transferred += size-transferred;
+                    }
+                    else
+                    {
+                        fread(buffer, sizeof(char), 1000, server);
+                        fwrite(buffer, sizeof(char), 1000, writeFile);
+                        transferred += 1000;
+                    }
+                }
+                fclose(writeFile);
+            }
+            free(filenames);
         }
     }
     fclose(server);
